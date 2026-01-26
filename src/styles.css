@@ -1,6 +1,17 @@
-html, body {
-  margin: 0;
-  width: 100%;
+.app-container {
+  display: flex;       /* horizontal layout */
+  height: 100vh;       /* full browser height */
+  width: 100vw;        /* full browser width */
+}
+
+.sidebar {
+  width: 250px;        /* fixed sidebar width */
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.map {
+  flex: 1;             /* take remaining width */
   height: 100%;
 }
-body { overflow: hidden; }

@@ -8,6 +8,7 @@ import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import { fromLonLat } from 'ol/proj';
 import { Fill, Stroke, Style } from 'ol/style';
+import { MapZoomService } from '../services/map-zoom.service';
 
 @Component({
   selector: 'app-map',
@@ -16,6 +17,8 @@ import { Fill, Stroke, Style } from 'ol/style';
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
   private map!: Map;
+
+  constructor(private zoomService: MapZoomService) {}
 
   ngAfterViewInit(): void {
     const osmLayer = new TileLayer({
@@ -48,11 +51,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
     let zoomTimeout: any;
     const view = this.map.getView();
+
     view.on('change:resolution', () => {
       clearTimeout(zoomTimeout);
+
       zoomTimeout = setTimeout(() => {
-        console.log('Zoom level:', view.getZoom());
-      }, 150);
+        const zoom = view.getZoom();
+        if (zoom !== undefined) {
+          this.zoomService.emitZoom(zoom);
+        }
+      }, 100);
     });
   }
 
