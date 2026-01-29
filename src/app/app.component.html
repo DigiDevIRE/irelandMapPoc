@@ -1,7 +1,34 @@
-<div class="app-container">
-    <!-- Sidebar on the left -->
-    <app-sidebar class="sidebar"></app-sidebar>
 
-    <!-- Map takes the rest of the space -->
-    <app-map class="map"></app-map>
-</div>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-left">
+            <img src="assets/logo.png" alt="Logo" class="header-logo" />
+        </div>
+
+        <div class="header-title">
+            Roundwood Production Forecast 2021–2040
+        </div>
+
+        <button (click)="openModal()">Select Point</button>
+    </header>
+
+    <!-- Map + sidebar container -->
+    <div class="app-container">
+        <app-map class="map-container"></app-map>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal" *ngIf="modalOpen">
+        <h4>Select a point on the map</h4>
+        <div>
+            <label>Latitude:</label>
+            <input type="text" [value]="lat" readonly>
+        </div>
+        <div>
+            <label>Longitude:</label>
+            <input type="text" [value]="lon" readonly>
+        </div>
+        <button (click)="submit()">Submit</button>
+        <button (click)="closeModal()">Close</button>
+    </div>

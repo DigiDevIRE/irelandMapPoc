@@ -1,1 +1,10 @@
-<div id="map" class="map-container"></div>
+<!-- Basemap dropdown -->
+<div class="map-toolbar">
+    <select (change)="switchBaseMap($event)">
+        <option value="standard">OSM Standard</option>
+        <option value="humanitarian">OSM Humanitarian</option>
+    </select>
+</div>
+
+<!-- Map -->
+<div id="map" class="map"></div>

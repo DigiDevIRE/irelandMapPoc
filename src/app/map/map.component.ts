@@ -6,9 +6,11 @@ import OSM from 'ol/source/OSM';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
-import { fromLonLat } from 'ol/proj';
+import {fromLonLat, toLonLat} from 'ol/proj';
 import { Fill, Stroke, Style } from 'ol/style';
 import { MapZoomService } from '../services/map-zoom.service';
+import { GeoServerService} from "../services/geoserver.service";
+import {MapClickService} from "../services/map-click.service";
 
 @Component({
   selector: 'app-map',
@@ -18,53 +20,53 @@ import { MapZoomService } from '../services/map-zoom.service';
 export class MapComponent implements AfterViewInit, OnDestroy {
   private map!: Map;
 
-  constructor(private zoomService: MapZoomService) {}
+
+
+  private osmLayer = new TileLayer({
+    source: new OSM(),
+  })
+
+  private osmHumLayer = new TileLayer({
+    source: new OSM({
+      url: 'https://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+    }),
+    visible: false
+  })
+
+
+
+
+  constructor(private mapClickService: MapClickService) {}
 
   ngAfterViewInit(): void {
-    const osmLayer = new TileLayer({
-      source: new OSM()
-    });
-
-    const countiesLayer = new VectorLayer({
-      source: new VectorSource({
-        url: 'assets/ireland-counties.geojson',
-        format: new GeoJSON()
-      }),
-      style: new Style({
-        stroke: new Stroke({
-          color: '#005eff',
-          width: 2
-        }),
-        fill: new Fill({
-          color: 'rgba(0, 94, 255, 0.15)'
-        })
-      })
-    });
 
     this.map = new Map({
       target: 'map',
-      layers: [osmLayer, countiesLayer],
+      layers: [this.osmLayer, this.osmHumLayer],
       view: new View({
         center: fromLonLat([-8, 53]),
-        zoom: 6
+        zoom: 6,
+        projection:'EPSG:3857'
       })
     });
-    let zoomTimeout: any;
-    const view = this.map.getView();
 
-    view.on('change:resolution', () => {
-      clearTimeout(zoomTimeout);
-
-      zoomTimeout = setTimeout(() => {
-        const zoom = view.getZoom();
-        if (zoom !== undefined) {
-          this.zoomService.emitZoom(zoom);
-        }
-      }, 100);
+    this.map.on('singleclick', (event) => {
+      const[lat,lon] = toLonLat(event.coordinate);
+      console.log('lat: ' + lat);
     });
+
+    this.mapClickService.setMap(this.map);
   }
 
   ngOnDestroy(): void {
     this.map.setTarget(undefined);
+  }
+
+  // Called from dropdown change
+  switchBaseMap(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const mapType = select.value;
+    this.osmLayer.setVisible(mapType === 'standard');
+    this.osmHumLayer.setVisible(mapType === 'humanitarian');
   }
 }

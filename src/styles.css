@@ -15,3 +15,115 @@
   flex: 1;             /* take remaining width */
   height: 100%;
 }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.app-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.app-header {
+  height: 70px;
+  background-color: #0b3d2e; /* dark green */
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 40px;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+}
+.map-toolbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: white;
+  padding: 6px;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* OpenLayers zoom buttons */
+.ol-zoom {
+  top: 60px !important; /* below header */
+  left: 10px !important;
+}
+
+/* Zoom slider */
+.ol-zoomslider {
+  top: 110px !important; /* below zoom buttons */
+  left: 10px !important;
+}
+.header {
+  position: fixed;   /* fixed at top */
+  top: 0;
+  right: 0;          /* align header to right */
+  width: 100%;
+  background: #eee;
+  padding: 10px;
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end; /* button to the right */
+}
+
+.button-container {
+  position: relative; /* modal will be positioned relative to this */
+}
+
+.button-container button {
+  padding: 6px 12px;
+}
+
+.modal {
+  position: absolute; /* relative to button-container */
+  top: 100%;         /* directly under button */
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 220px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  margin-top: 5px;   /* small gap below button */
+  z-index: 1001;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  padding-top: 50px; /* leave space for header */
+}
+
+.sidebar {
+  width: 250px;
+  border-right: 1px solid #ccc;
+}
+
+.map-container {
+  flex: 1;
+  height: 100%;
+}
+
+
