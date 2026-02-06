@@ -31,4 +31,27 @@
         </div>
         <button (click)="submit()">Submit</button>
         <button (click)="closeModal()">Close</button>
+        <button
+                class="btn primary"
+                (click)="showReportModal = true"
+                [disabled]="!reportData"
+        >
+            View Report
+        </button>
+    </div>
+
+
+    <div class="report-backdrop" *ngIf="showReportModal">
+        <div class="report-modal">
+
+            <div class="modal-header">
+                <h3>Report</h3>
+                <button class="close-btn" (click)="showReportModal = false">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <app-pivot-report *ngIf="reportData" [data]="reportData"></app-pivot-report>
+            </div>
+
+        </div>
     </div>

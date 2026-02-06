@@ -18,13 +18,14 @@
     "ol": "^9.2.4",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
+    "webdatarocks": "^1.4.9",
     "zone.js": "~0.14.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.0.0",
     "@angular/cli": "^17.0.0",
     "@angular/compiler-cli": "^17.0.0",
-    "typescript": "~5.2.0",
-    "@types/geojson": "^7946.0.0"
+    "@types/geojson": "^7946.0.0",
+    "typescript": "~5.2.0"
   }
 }

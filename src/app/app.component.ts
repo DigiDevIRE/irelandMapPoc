@@ -10,6 +10,9 @@ export class AppComponent {
   lat: number | null = null;
   lon: number | null = null;
 
+  reportData: any[] | null = null;
+  showReportModal = false;
+
   constructor(private mapClickService: MapClickService) {}
 
   openModal() {
@@ -31,7 +34,20 @@ export class AppComponent {
   }
 
   submit() {
-    alert(`Submitting: Lat=${this.lat}, Lon=${this.lon}`);
-    this.closeModal();
+    if (this.lat == null || this.lon == null) return;
+
+    const payload = {
+      latitude: this.lat,
+      longitude: this.lon,
+      radiusMeters: this.radius
+    };
+
+    this.apiService.submitSelection(payload).subscribe({
+      next: (response) => {
+        this.reportData = response;   // ← backend pivot data
+        this.mapClickService.disableClick();
+      },
+      error: (err) => console.error(err)
+    });
   }
 }
