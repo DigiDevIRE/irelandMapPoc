@@ -33,6 +33,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     visible: false
   })
 
+  azureBaseLayer = new TileLayer({
+    visible: false,
+    source: new XYZ({
+      url: `https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.base.road&x={x}&y={y}&zoom={z}&subscription-key=YOUR_KEY`,
+      tileSize: 256,
+      crossOrigin: 'anonymous'
+    })
+  });
+
 
 
 
@@ -56,6 +65,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     });
 
     this.mapClickService.setMap(this.map);
+
+    this.map.addLayer(this.azureBaseLayer);
   }
 
   ngOnDestroy(): void {
@@ -68,5 +79,6 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     const mapType = select.value;
     this.osmLayer.setVisible(mapType === 'standard');
     this.osmHumLayer.setVisible(mapType === 'humanitarian');
+    this.azureBaseLayer.setVisible(type === 'azure');
   }
 }
