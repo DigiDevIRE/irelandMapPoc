@@ -55,3 +55,39 @@
 
         </div>
     </div>
+
+
+
+
+
+    <div class="map-search">
+
+        <div class="search-input-wrapper">
+            <input
+                    type="text"
+                    placeholder="Search county…"
+                    [(ngModel)]="searchText"
+                    (input)="onSearchChange(searchText)"
+            />
+
+            <!-- Clear (X) button -->
+            <button
+                    *ngIf="searchText"
+                    class="clear-btn"
+                    (click)="clearSearch()"
+            >
+                ✕
+            </button>
+        </div>
+
+        <!-- Autocomplete dropdown -->
+        <ul *ngIf="filteredCounties.length && searchText" class="autocomplete">
+            <li
+                    *ngFor="let county of filteredCounties"
+                    (click)="selectCounty(county)"
+            >
+                {{ county }}
+            </li>
+        </ul>
+
+    </div>

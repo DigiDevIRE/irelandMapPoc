@@ -50,4 +50,51 @@ export class AppComponent {
       error: (err) => console.error(err)
     });
   }
+
+  counties: string[] = [];
+  filteredCounties: string[] = [];
+  searchText = '';
+
+  private loadCountyNames() {
+    const source = this.countiesLayer?.getSource();
+    if (!source) return;
+
+    const features = source.getFeatures();
+
+    // Wait until GeoJSON loads
+    if (!features.length) {
+      source.once('change', () => this.loadCountyNames());
+      return;
+    }
+
+    this.counties = features
+        .map(f => f.get('name'))
+        .filter(Boolean)
+        .sort();
+
+    this.filteredCounties = [...this.counties];
+  }
+
+  onSearchChange(value: string) {
+    this.searchText = value;
+
+    const v = value.toLowerCase();
+
+    this.filteredCounties = this.counties.filter(c =>
+        c.toLowerCase().includes(v)
+    );
+  }
+
+  selectCounty(name: string) {
+    this.searchText = name;
+    this.filteredCounties = [];
+
+    this.searchCounty(name); // existing highlight + zoom logic
+  }
+
+  clearSearch() {
+    this.searchText = '';
+    this.filteredCounties = [...this.counties];
+    this.highlightLayer?.getSource()?.clear();
+  }
 }
