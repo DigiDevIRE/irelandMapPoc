@@ -206,3 +206,12 @@ rop {
   background: #f2f2f2;
 }
 
+
+.measure-tooltip {
+  background: white;
+  border: 1px solid #333;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+}
