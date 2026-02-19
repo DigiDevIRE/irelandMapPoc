@@ -97,4 +97,103 @@ export class AppComponent {
     this.filteredCounties = [...this.counties];
     this.highlightLayer?.getSource()?.clear();
   }
+
+
+
+  //new stuff
+  import { Component, Input, Output, EventEmitter } from '@angular/core';
+import Map from 'ol/Map';
+import { getWidth } from 'ol/extent';
+import View from 'ol/View';
+
+@Component({
+  selector: 'app-print-modal',
+  templateUrl: './print-modal.component.html',
+  styleUrls: ['./print-modal.component.scss']
+})
+export class PrintModalComponent {
+
+  @Input() map!: Map;
+  @Output() close = new EventEmitter<void>();
+
+  pageSize: 'A4' | 'A3' = 'A4';
+  dpi = 150;
+  scale = 10000;
+
+  scales = [500, 1000, 2500, 5000, 10000, 25000, 50000];
+
+  private pageDimensions = {
+    A4: [297, 210], // mm landscape
+    A3: [420, 297]
+  };
+
+  print(): void {
+    const view = this.map.getView();
+
+    const [widthMm, heightMm] = this.pageDimensions[this.pageSize];
+
+    const widthPx = Math.round((widthMm * this.dpi) / 25.4);
+    const heightPx = Math.round((heightMm * this.dpi) / 25.4);
+
+    const resolution = this.scale / (this.dpi * 39.37); // OL scale → resolution
+
+    const size = this.map.getSize()!;
+    const originalResolution = view.getResolution();
+
+    // Resize map for print render
+    this.map.setSize([widthPx, heightPx]);
+    view.setResolution(resolution);
+
+    this.map.once('rendercomplete', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = widthPx;
+      canvas.height = heightPx;
+
+      const context = canvas.getContext('2d')!;
+
+      document
+          .querySelectorAll<HTMLCanvasElement>('.ol-layer canvas')
+          .forEach((layerCanvas) => {
+            if (layerCanvas.width > 0) {
+              const opacity =
+                  layerCanvas.parentElement!.style.opacity || '1';
+              context.globalAlpha = Number(opacity);
+
+              const transform = layerCanvas.style.transform;
+
+              const matrix = transform
+                  .match(/^matrix\(([^\(]*)\)$/)?.[1]
+                  .split(',')
+                  .map(Number);
+
+              if (matrix) {
+                context.setTransform(
+                    matrix[0],
+                    matrix[1],
+                    matrix[2],
+                    matrix[3],
+                    matrix[4],
+                    matrix[5]
+                );
+              }
+
+              context.drawImage(layerCanvas, 0, 0);
+            }
+          });
+
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'map-print.png';
+      link.click();
+
+      // Restore map
+      this.map.setSize(size);
+      view.setResolution(originalResolution!);
+      this.close.emit();
+    });
+
+    this.map.renderSync();
+  }
+
+
 }
