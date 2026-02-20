@@ -220,4 +220,75 @@ export class AppComponent {
   }
 }
 
+
+
+private drawScaleBar(
+    pdf: jsPDF,
+    xMm: number,
+    yMm: number,
+    scale: number,
+    maxWidthMm = 60,       // scale bar visual width on paper
+    heightMm = 5,
+    segments = 4
+): void {
+
+  // Aim for a bar that fits within maxWidthMm
+  const metersPerMm = this.metersPerMm(scale);
+  const targetMeters = maxWidthMm * metersPerMm;
+
+  // Choose a “nice” real-world length
+  const barMeters = this.niceMeters(targetMeters);
+
+  // Convert that to mm on paper
+  const barWidthMm = barMeters / metersPerMm;
+
+  // Segment sizing
+  const segWidthMm = barWidthMm / segments;
+
+  // Units formatting
+  const useKm = barMeters >= 1000;
+  const format = (m: number) =>
+      useKm ? `${(m / 1000).toLocaleString()} km` : `${m.toLocaleString()} m`;
+
+  // Title
+  pdf.setFontSize(9);
+  pdf.text('Scale bar', xMm, yMm - 2);
+
+  // Outline
+  pdf.setDrawColor(0);
+  pdf.rect(xMm, yMm, barWidthMm, heightMm);
+
+  // Fill segments alternately
+  for (let i = 0; i < segments; i++) {
+  const sx = xMm + i * segWidthMm;
+  if (i % 2 === 0) {
+    pdf.setFillColor(0, 0, 0);
+  } else {
+    pdf.setFillColor(255, 255, 255);
+  }
+  pdf.rect(sx, yMm, segWidthMm, heightMm, 'F');
+}
+
+// Tick labels (0, mid, end)
+const midMeters = barMeters / 2;
+
+pdf.setTextColor(0);
+pdf.setFontSize(8);
+
+pdf.text('0', xMm, yMm + heightMm + 4);
+
+pdf.text(
+    format(midMeters),
+    xMm + barWidthMm / 2,
+    yMm + heightMm + 4,
+    { align: 'center' }
+);
+
+pdf.text(
+    format(barMeters),
+    xMm + barWidthMm,
+    yMm + heightMm + 4,
+    { align: 'right' }
+);
+}
 }
