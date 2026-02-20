@@ -101,99 +101,123 @@ export class AppComponent {
 
 
   //new stuff
-  import { Component, Input, Output, EventEmitter } from '@angular/core';
-import Map from 'ol/Map';
-import { getWidth } from 'ol/extent';
-import View from 'ol/View';
+  import jsPDF from 'jspdf';
+  import Map from 'ol/Map';
 
-@Component({
-  selector: 'app-print-modal',
-  templateUrl: './print-modal.component.html',
-  styleUrls: ['./print-modal.component.scss']
-})
-export class PrintModalComponent {
+  @Injectable({ providedIn: 'root' })
+  export class PrintService {
 
-  @Input() map!: Map;
-  @Output() close = new EventEmitter<void>();
+  constructor(private mapService: MapService) {}
 
-  pageSize: 'A4' | 'A3' = 'A4';
-  dpi = 150;
-  scale = 10000;
+  async exportPdf(
+      pageSize: 'A4' | 'A3',
+      dpi: number,
+      scale: number,
+      legendItems: string[]
+  ): Promise<void> {
 
-  scales = [500, 1000, 2500, 5000, 10000, 25000, 50000];
+    const map = this.mapService.getMap();
+    const view = map.getView();
 
-  private pageDimensions = {
-    A4: [297, 210], // mm landscape
-    A3: [420, 297]
-  };
+    const pageDimensions = {
+      A4: [297, 210],
+      A3: [420, 297]
+    };
 
-  print(): void {
-    const view = this.map.getView();
+    const [widthMm, heightMm] = pageDimensions[pageSize];
 
-    const [widthMm, heightMm] = this.pageDimensions[this.pageSize];
+    const widthPx = Math.round((widthMm * dpi) / 25.4);
+    const heightPx = Math.round((heightMm * dpi) / 25.4);
 
-    const widthPx = Math.round((widthMm * this.dpi) / 25.4);
-    const heightPx = Math.round((heightMm * this.dpi) / 25.4);
+    const resolution = scale / (dpi * 39.37);
 
-    const resolution = this.scale / (this.dpi * 39.37); // OL scale → resolution
-
-    const size = this.map.getSize()!;
+    const originalSize = map.getSize()!;
     const originalResolution = view.getResolution();
 
-    // Resize map for print render
-    this.map.setSize([widthPx, heightPx]);
+    map.setSize([widthPx, heightPx]);
     view.setResolution(resolution);
 
-    this.map.once('rendercomplete', () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = widthPx;
-      canvas.height = heightPx;
+    await new Promise<void>((resolve) => {
+      map.once('rendercomplete', () => {
 
-      const context = canvas.getContext('2d')!;
+        const canvas = document.createElement('canvas');
+        canvas.width = widthPx;
+        canvas.height = heightPx;
 
-      document
-          .querySelectorAll<HTMLCanvasElement>('.ol-layer canvas')
-          .forEach((layerCanvas) => {
-            if (layerCanvas.width > 0) {
-              const opacity =
-                  layerCanvas.parentElement!.style.opacity || '1';
-              context.globalAlpha = Number(opacity);
+        const context = canvas.getContext('2d')!;
 
-              const transform = layerCanvas.style.transform;
-
-              const matrix = transform
-                  .match(/^matrix\(([^\(]*)\)$/)?.[1]
-                  .split(',')
-                  .map(Number);
-
-              if (matrix) {
-                context.setTransform(
-                    matrix[0],
-                    matrix[1],
-                    matrix[2],
-                    matrix[3],
-                    matrix[4],
-                    matrix[5]
-                );
-              }
+        document.querySelectorAll<HTMLCanvasElement>('.ol-layer canvas')
+            .forEach(layerCanvas => {
+              if (!layerCanvas.width) return;
 
               context.drawImage(layerCanvas, 0, 0);
-            }
-          });
+            });
 
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = 'map-print.png';
-      link.click();
+        const imgData = canvas.toDataURL('image/png');
 
-      // Restore map
-      this.map.setSize(size);
-      view.setResolution(originalResolution!);
-      this.close.emit();
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'mm',
+          format: pageSize
+        });
+
+        // ------------------------
+        // HEADER
+        // ------------------------
+        pdf.setFontSize(18);
+        pdf.text('Roundwood Forecast', 15, 15);
+
+        // ------------------------
+        // MAP IMAGE
+        // ------------------------
+        pdf.addImage(
+            imgData,
+            'PNG',
+            10,
+            25,
+            widthMm - 20,
+            heightMm - 50
+        );
+
+        // ------------------------
+        // SCALE (bottom left)
+        // ------------------------
+        pdf.setFontSize(10);
+        pdf.text(
+            `Scale 1 : ${scale.toLocaleString()}`,
+            15,
+            heightMm - 10
+        );
+
+        // ------------------------
+        // LEGEND (bottom right)
+        // ------------------------
+        let legendY = heightMm - 20;
+
+        pdf.setFontSize(11);
+        pdf.text('Legend', widthMm - 60, legendY);
+
+        pdf.setFontSize(9);
+        legendItems.forEach((item, index) => {
+          pdf.text(
+              item,
+              widthMm - 60,
+              legendY + 5 + (index * 5)
+          );
+        });
+
+        pdf.save('roundwood-forecast.pdf');
+
+        // restore map
+        map.setSize(originalSize);
+        view.setResolution(originalResolution!);
+
+        resolve();
+      });
+
+      map.renderSync();
     });
-
-    this.map.renderSync();
   }
-
+}
 
 }
