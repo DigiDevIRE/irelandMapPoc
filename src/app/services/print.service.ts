@@ -376,4 +376,31 @@ export class PrintService {
         pdf.text(fmt(barMeters / 2), xMm + barWidthMm / 2, yMm + heightMm + 4, { align: 'center' });
         pdf.text(fmt(barMeters), xMm + barWidthMm, yMm + heightMm + 4, { align: 'right' });
     }
+
+    getCurrentScale(dpi = 96): number {
+        const map = this.mapService.getMap();
+        const view = map.getView();
+
+        const resolution = view.getResolution();
+        if (!resolution) return 0;
+
+        const projection = view.getProjection();
+        const center = view.getCenter();
+
+        if (!center) return 0;
+
+        // Convert resolution to metres per pixel at map center
+        const metersPerPixel = getPointResolution(
+            projection,
+            resolution,
+            center,
+            'm'
+        );
+
+        const inchesPerMeter = 39.37;
+
+        const scale = metersPerPixel * dpi * inchesPerMeter;
+
+        return Math.round(scale);
+    }
 }
