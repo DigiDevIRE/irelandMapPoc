@@ -1,84 +1,35 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import Map from 'ol/Map';
 import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import GeoJSON from 'ol/format/GeoJSON';
-import {fromLonLat, toLonLat} from 'ol/proj';
-import { Fill, Stroke, Style } from 'ol/style';
-import { MapZoomService } from '../services/map-zoom.service';
-import { GeoServerService} from "../services/geoserver.service";
-import {MapClickService} from "../services/map-click.service";
+// import layers/sources as you already do...
+import { MapService } from '../services/map.service';
 
 @Component({
-  selector: 'app-map',
-  templateUrl: './map.component.html',
-  styleUrls: ['./map.component.css']
+  selector: 'app-forestry-map',
+  templateUrl: './forestry-map.component.html',
+  styleUrls: ['./forestry-map.component.scss']
 })
-export class MapComponent implements AfterViewInit, OnDestroy {
+export class ForestryMapComponent implements AfterViewInit {
   private map!: Map;
 
-
-
-  private osmLayer = new TileLayer({
-    source: new OSM(),
-  })
-
-  private osmHumLayer = new TileLayer({
-    source: new OSM({
-      url: 'https://{a-c}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
-    }),
-    visible: false
-  })
-
-  azureBaseLayer = new TileLayer({
-    visible: false,
-    source: new XYZ({
-      url: `https://atlas.microsoft.com/map/tile?api-version=2.1&tilesetId=microsoft.base.road&x={x}&y={y}&zoom={z}&subscription-key=YOUR_KEY`,
-      tileSize: 256,
-      crossOrigin: 'anonymous'
-    })
-  });
-
-
-
-
-  constructor(private mapClickService: MapClickService) {}
+  constructor(private mapService: MapService) {}
 
   ngAfterViewInit(): void {
-
+    // Your existing map creation
     this.map = new Map({
       target: 'map',
-      layers: [this.osmLayer, this.osmHumLayer],
+      layers: [
+        // IMPORTANT: ensure each layer has an id matching MapLayerService state
+        // e.g. baseLayer.set('id', 'osm');
+        // forecastLayer.set('id', 'forecast');
+      ],
       view: new View({
-        center: fromLonLat([-8, 53]),
-        zoom: 6,
-        projection:'EPSG:3857'
+        // your existing settings
+        center: [0, 0],
+        zoom: 7
       })
     });
 
-    this.map.on('singleclick', (event) => {
-      const[lat,lon] = toLonLat(event.coordinate);
-      console.log('lat: ' + lat);
-    });
-
-    this.mapClickService.setMap(this.map);
-
-    this.map.addLayer(this.azureBaseLayer);
-  }
-
-  ngOnDestroy(): void {
-    this.map.setTarget(undefined);
-  }
-
-  // Called from dropdown change
-  switchBaseMap(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const mapType = select.value;
-    this.osmLayer.setVisible(mapType === 'standard');
-    this.osmHumLayer.setVisible(mapType === 'humanitarian');
-    this.azureBaseLayer.setVisible(type === 'azure');
+    this.mapService.setMap(this.map);
   }
 }
