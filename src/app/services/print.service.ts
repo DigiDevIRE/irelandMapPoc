@@ -299,27 +299,80 @@ export class PrintService {
     // ----------------------------
     // PDF Legend drawing
     // ----------------------------
-    private drawLegend(pdf: jsPDF, pageWmm: number, pageHmm: number, items: LegendItem[]): void {
-        const boxW = 70;
-        const x = pageWmm - boxW - 10;
-        let y = pageHmm - 40;
+    private drawLegend(
+        pdf: jsPDF,
+        pageWmm: number,
+        pageHmm: number,
+        items: LegendItem[]
+    ): void {
 
+        const padding = 6;
+        const rowHeight = 8;
+        const iconSize = 8;
+
+        const titleHeight = 6;
+        const legendWidth = 75;   // Slightly wider than before
+        const marginRight = 8;    // Push further right
+
+        const x = pageWmm - legendWidth - marginRight;
+        const totalHeight = padding * 2 + titleHeight + (items.length * rowHeight);
+
+        const y = pageHmm - totalHeight - 8; // Keep slightly above bottom
+
+        // ----------------------------
+        // WHITE BACKGROUND
+        // ----------------------------
+        pdf.setFillColor(255, 255, 255);
+        pdf.rect(x, y, legendWidth, totalHeight, 'F');
+
+        // Optional subtle border (recommended)
+        pdf.setDrawColor(200);
+        pdf.rect(x, y, legendWidth, totalHeight);
+
+        // ----------------------------
+        // TITLE
+        // ----------------------------
         pdf.setFontSize(11);
-        pdf.text('Legend', x, y);
-        y += 6;
+        pdf.setTextColor(0);
+        pdf.text('Legend', x + padding, y + padding + 3);
+
+        let currentY = y + padding + titleHeight;
 
         pdf.setFontSize(9);
 
+        // ----------------------------
+        // ITEMS
+        // ----------------------------
         for (const item of items) {
-            if (y > pageHmm - 10) break;
 
+            // Icon
             if (item.iconDataUrl) {
-                pdf.addImage(item.iconDataUrl, 'PNG', x, y - 4, 8, 8);
+                pdf.addImage(
+                    item.iconDataUrl,
+                    'PNG',
+                    x + padding,
+                    currentY - 4,
+                    iconSize,
+                    iconSize
+                );
             } else {
-                pdf.rect(x, y - 4, 8, 8);
+                // fallback empty box
+                pdf.rect(
+                    x + padding,
+                    currentY - 4,
+                    iconSize,
+                    iconSize
+                );
             }
-            pdf.text(item.name, x + 10, y + 2);
-            y += 8;
+
+            // Text
+            pdf.text(
+                item.name,
+                x + padding + iconSize + 4,
+                currentY + 2
+            );
+
+            currentY += rowHeight;
         }
     }
 
